@@ -559,7 +559,7 @@ namespace RedLockNet.SERedis
 			var host = GetHost(cache.ConnectionMultiplexer);
 
 			var result = false;
-
+   
 			try
 			{
 				logger.LogTrace($"UnlockInstanceAsync enter {host}: {redisKey}, {LockId}");
@@ -589,13 +589,19 @@ namespace RedLockNet.SERedis
 
 			foreach (var endPoint in cache.GetEndPoints())
 			{
-				var server = cache.GetServer(endPoint);
-
-				result.Append(server.EndPoint.GetFriendlyName());
-				result.Append(" (");
-				result.Append(server.IsSlave ? "slave" : "master");
-				result.Append(server.IsConnected ? "" : ", disconnected");
-				result.Append("), ");
+                                try
+                                {
+                                    var server = cache.GetServer(endPoint);
+                                    result.Append(server.EndPoint.GetFriendlyName());
+                                    result.Append(" (");
+                                    result.Append(server.IsSlave ? "slave" : "master");
+                                    result.Append(server.IsConnected ? "" : ", disconnected");
+                                    result.Append("), ");
+                                }
+                                catch (ArgumentException)
+                                {
+                                    // swallow exception, the endpoint is not connected
+		                }
 			}
 
 			if (result.Length >= 2)
